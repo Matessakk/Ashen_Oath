@@ -6,8 +6,10 @@ public class WeaponChange : MonoBehaviour
     public GameObject sword;
     public GameObject bow;
 
-    private enum WeaponType { sword, bow };
-    private WeaponType currentWeapon = WeaponType.sword;
+    public enum WeaponType { sword, bow };
+    public WeaponType currentWeapon = WeaponType.sword;
+
+    
     
     void Start()
     {
