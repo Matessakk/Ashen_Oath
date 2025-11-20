@@ -9,33 +9,65 @@ public class PlayerAttack : MonoBehaviour
     public GameObject arrowPrefab;
     public Transform firePoint;
     public float arrowSpeed = 10f;
-    public float swordVisibleTime = 4f;
+    public float weaponVisibleTime = 4f;
+    public LineRenderer lineRenderer;
+    public Animator animator;
 
     private bool canAttack = true;
+    private Vector2 attackDirection = Vector2.zero;
 
     private void Start()
     {
         sword.SetActive(false);
         bow.SetActive(false);
+
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false; 
+        }
     }
 
     private void Update()
     {
         if (!canAttack) return;
 
-        Vector2 attackDirection = Vector2.zero;
+        attackDirection = Vector2.zero;
 
         if (Input.GetKey(KeyCode.W)) attackDirection = Vector2.up;
         else if (Input.GetKey(KeyCode.S)) attackDirection = Vector2.down;
         else if (Input.GetKey(KeyCode.A)) attackDirection = Vector2.left;
         else if (Input.GetKey(KeyCode.D)) attackDirection = Vector2.right;
 
+        
+        if (lineRenderer != null)
+        {
+            if (attackDirection != Vector2.zero)
+            {
+                lineRenderer.enabled = true;
+                lineRenderer.SetPosition(0, transform.position);
+                lineRenderer.SetPosition(1, transform.position + (Vector3)attackDirection * 2f);
+            }
+            else
+            {
+                lineRenderer.enabled = false;
+            }
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
+
             if (weaponChange.currentWeapon == WeaponChange.WeaponType.sword)
+            {
                 MeleeAttack();
+               
+                Debug.Log("Hráè sekl");
+            }
+
             else if (weaponChange.currentWeapon == WeaponChange.WeaponType.bow)
+            {
                 RangedAttack(attackDirection);
+                Debug.Log("Hráè vystøelil");
+            }
         }
     }
 
@@ -43,7 +75,10 @@ public class PlayerAttack : MonoBehaviour
     {
         StopAllCoroutines();
         StartCoroutine(ShowWeapon(sword));
-        
+        if (animator != null)
+        {
+            animator.SetTrigger("sword");
+        }
     }
 
     private void RangedAttack(Vector2 direction)
@@ -70,7 +105,8 @@ public class PlayerAttack : MonoBehaviour
     private IEnumerator ShowWeapon(GameObject weapon)
     {
         weapon.SetActive(true);
-        yield return new WaitForSeconds(swordVisibleTime);
+        yield return new WaitForSeconds(weaponVisibleTime);
         weapon.SetActive(false);
     }
 }
+
