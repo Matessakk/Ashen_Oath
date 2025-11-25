@@ -7,6 +7,7 @@ public class Arrow : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        Destroy(gameObject, 3f);
     }
 
     private void FixedUpdate()
