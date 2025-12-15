@@ -2,21 +2,20 @@ using UnityEngine;
 
 public class SwordDamage : MonoBehaviour
 {
-    public int damage = 1;
+    public int baseDamage = 1;
+    public int chargedDamage = 5;
+    public WeaponCharge weaponCharge;
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerEnter2D(Collider2D col)
     {
-        if (collision.CompareTag("Enemy"))
-        {
-            
-            Vector2 knockDir = (collision.transform.position - transform.position).normalized;
+        EnemyHealth enemy = col.GetComponent<EnemyHealth>();
+        if (!enemy) return;
 
-            EnemyHealth eh = collision.GetComponent<EnemyHealth>();
-            if (eh != null)
-            {
+        int dmg = baseDamage;
 
-                eh.TakeDamage(damage, knockDir);
-            }
-        }
+        if (weaponCharge.TakeCharge())
+            dmg = chargedDamage;
+
+        enemy.TakeDamage(dmg, Vector2.zero);
     }
 }

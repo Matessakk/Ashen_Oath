@@ -17,14 +17,20 @@ public class PlayerMovement : MonoBehaviour
     private bool hasAirDashed = false;
     private bool isDashing = false;
 
+    private KnockbackReceiver knockback;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        knockback = GetComponent<KnockbackReceiver>();
     }
+
 
     private void Update()
     {
         if (isDashing) return;
+        if (knockback.IsKnocked) return;
+
 
         float horizontal = Input.GetAxisRaw("Horizontal");
         rb.linearVelocity = new Vector2(horizontal * speed, rb.linearVelocity.y);

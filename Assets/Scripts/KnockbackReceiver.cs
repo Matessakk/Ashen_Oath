@@ -2,39 +2,32 @@ using UnityEngine;
 
 public class KnockbackReceiver : MonoBehaviour
 {
-    public float knockbackForce = 5f;
-    public float knockbackDuration = 0.15f;
+    [SerializeField] 
+    private float knockbackTime = 0.15f;
 
     private Rigidbody2D rb;
-    private bool beingKnocked = false;
-    private float knockTime;
+    private float timer;
+    public bool IsKnocked { get; private set; }
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    public void ApplyKnockback(Vector2 direction)
+    public void ApplyKnockback(Vector2 force)
     {
-        if (rb == null) return;
-
-        beingKnocked = true;
-        knockTime = knockbackDuration;
-
-        rb.linearVelocity = Vector2.zero; // reset pro jistotu
-        rb.AddForce(direction.normalized * knockbackForce, ForceMode2D.Impulse);
+        IsKnocked = true;
+        timer = knockbackTime;
+        rb.linearVelocity = force;
     }
 
     private void Update()
     {
-        if (beingKnocked)
+        if (IsKnocked)
         {
-            knockTime -= Time.deltaTime;
-            if (knockTime <= 0)
-            {
-                beingKnocked = false;
-            }
+            timer -= Time.deltaTime;
+            if (timer <= 0)
+                IsKnocked = false;
         }
     }
 }
-
