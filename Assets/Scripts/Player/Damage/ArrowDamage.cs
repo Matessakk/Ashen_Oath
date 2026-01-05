@@ -4,56 +4,99 @@ public class ArrowDamage : MonoBehaviour
 {
     public int baseDamage = 1;
     public int chargedDamage = 5;
-    [Header("Elements")]
+
+    [Header("VFX")]
     public GameObject fireEffect;
     public GameObject waterEffect;
-    public GameObject airEffect;
     public GameObject earthEffect;
-    
+    public GameObject airEffect;
 
-    bool isCharged;
+    [Header("SFX - Fly/Impact")]
+    public AudioClip fireSfx;
+    public AudioClip waterSfx;
+    public AudioClip earthSfx;
+    public AudioClip airSfx;
 
     WeaponCharge.Element element;
+    bool charged;
+    AudioSource audioSource;
 
-
-
-    public void Init(bool charged, WeaponCharge.Element currentElement)
+    public void Init(bool isCharged, WeaponCharge.Element el)
     {
-        isCharged = charged;
-        element = currentElement;
+        charged = isCharged;
+        element = el;
 
-        if (fireEffect)
-            fireEffect.SetActive(isCharged && element == WeaponCharge.Element.Fire);
+        audioSource = GetComponent<AudioSource>();
 
-        if (waterEffect)
-            waterEffect.SetActive(isCharged && element == WeaponCharge.Element.Water);
+        if (!charged) return;
 
-        if (earthEffect)
-            earthEffect.SetActive(isCharged && currentElement == WeaponCharge.Element.Earth);
+        switch (element)
+        {
+            case WeaponCharge.Element.Fire:
+                if (fireEffect != null) fireEffect.SetActive(true);
+                PlaySfx(fireSfx);
+                break;
 
-        if (airEffect)
-            airEffect.SetActive(isCharged && currentElement == WeaponCharge.Element.Air);
+            case WeaponCharge.Element.Water:
+                if (waterEffect != null) waterEffect.SetActive(true);
+                PlaySfx(waterSfx);
+                break;
 
-        
+            case WeaponCharge.Element.Earth:
+                if (earthEffect != null) earthEffect.SetActive(true);
+                PlaySfx(earthSfx);
+                break;
+
+            case WeaponCharge.Element.Air:
+                if (airEffect != null) airEffect.SetActive(true);
+                PlaySfx(airSfx);
+                break;
+        }
+
+        Debug.Log("Arrow charged with " + element);
     }
 
+    void PlaySfx(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
+    }
 
-
-
+    void PlaySfxAtLocation(AudioClip clip)
+    {
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position);
+        }
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!collision.CompareTag("Enemy")) return;
 
-        Vector2 knockDir = (collision.transform.position - transform.position).normalized;
-
         EnemyHealth eh = collision.GetComponent<EnemyHealth>();
-        if (eh != null)
-            eh.TakeDamage(isCharged ? chargedDamage : baseDamage, knockDir);
+        if (eh == null) return;
+
+        Vector2 knockDir = (collision.transform.position - transform.position).normalized;
+        int dmg = charged ? chargedDamage : baseDamage;
+
+        eh.TakeDamage(dmg, knockDir, element);
+
+        if (charged)
+        {
+            switch (element)
+            {
+                case WeaponCharge.Element.Fire: PlaySfxAtLocation(fireSfx); break;
+                case WeaponCharge.Element.Water: PlaySfxAtLocation(waterSfx); break;
+                case WeaponCharge.Element.Earth: PlaySfxAtLocation(earthSfx); break;
+                case WeaponCharge.Element.Air: PlaySfxAtLocation(airSfx); break;
+            }
+        }
 
         Destroy(gameObject);
     }
 }
+
 
 
 

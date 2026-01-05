@@ -13,7 +13,7 @@ public class PlayerHealth : MonoBehaviour
     private void Start()
     {
         currentHealth = maxHealth;
-        Debug.Log("Player HP: " + currentHealth + "/" + maxHealth);
+        
     }
 
     public void TakeDamage(int amount, Vector2 knockDirection)
@@ -21,7 +21,7 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible) return;
 
         currentHealth -= amount;
-        Debug.Log("Player HP: " + currentHealth);
+        
 
         
         GetComponent<KnockbackReceiver>()?.ApplyKnockback(knockDirection);
@@ -44,7 +44,6 @@ public class PlayerHealth : MonoBehaviour
 
     private void Die()
     {
-        Debug.Log("PLAYER DIED ");
-        // sem pak dáš animaci / respawn / game over
+        
     }
 }

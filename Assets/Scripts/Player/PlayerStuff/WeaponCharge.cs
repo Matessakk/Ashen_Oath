@@ -15,26 +15,34 @@ public class WeaponCharge : MonoBehaviour
     public GameObject waterEffect;
     public GameObject airEffect;
     public GameObject earthEffect;
-    
 
-    public void Init(bool charged)
-    {
-        isCharged = charged;
+    [Header("Element SFX - Charge/Swing")]
+    public AudioClip fireSfx;
+    public AudioClip waterSfx;
+    public AudioClip earthSfx;
+    public AudioClip airSfx;
 
-        if (isCharged)
-            Debug.Log("Arrow spawned CHARGED");
-    
-    }
-
+    AudioSource audioSource;
 
     WeaponChange weaponChange;
     WeaponChange.WeaponType lastWeapon;
 
     void Awake()
     {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogError("WeaponCharge: Chyba! Chybí komponenta AudioSource na tomto objektu.");
+        }
+
         weaponChange = GetComponent<WeaponChange>();
         lastWeapon = weaponChange.currentWeapon;
         UpdateEffects();
+    }
+
+    public void Init(bool charged)
+    {
+        isCharged = charged;
     }
 
     void Update()
@@ -52,7 +60,6 @@ public class WeaponCharge : MonoBehaviour
                 currentElement = 0;
 
             ResetCharge();
-            Debug.Log("Switched element: " + currentElement);
         }
 
         if (Input.GetKey(KeyCode.E) && !isCharged)
@@ -61,13 +68,9 @@ public class WeaponCharge : MonoBehaviour
             if (chargeTimer >= chargeTime)
             {
                 isCharged = true;
-                Debug.Log("Weapon charged");
                 UpdateEffects();
             }
         }
-
-        
-
     }
 
     public bool TakeCharge()
@@ -102,6 +105,23 @@ public class WeaponCharge : MonoBehaviour
             airEffect.SetActive(isCharged && currentElement == Element.Air);
     }
 
+    public void PlayElementSfx()
+    {
+        if (audioSource == null) return;
+
+        AudioClip clip = null;
+
+        switch (currentElement)
+        {
+            case Element.Fire: clip = fireSfx; break;
+            case Element.Water: clip = waterSfx; break;
+            case Element.Earth: clip = earthSfx; break;
+            case Element.Air: clip = airSfx; break;
+        }
+
+        if (clip != null)
+            audioSource.PlayOneShot(clip);
+    }
 }
 
 

@@ -33,6 +33,11 @@ public class PlayerAttack : MonoBehaviour
     void MeleeAttack()
     {
         StartCoroutine(ShowWeapon(sword));
+
+        if (weaponCharge.isCharged)
+        {
+            weaponCharge.PlayElementSfx();
+        }
     }
 
     IEnumerator ShowWeapon(GameObject weapon)
@@ -54,11 +59,10 @@ public class PlayerAttack : MonoBehaviour
         bool charged = weaponCharge.TakeCharge();
         Debug.Log("Arrow shot | charged = " + charged);
 
-        
+
         ArrowDamage ad = arrow.GetComponent<ArrowDamage>();
         if (ad != null)
             ad.Init(charged, weaponCharge.currentElement);
-
 
         Rigidbody2D rb = arrow.GetComponent<Rigidbody2D>();
         rb.linearVelocity = dir * arrowSpeed;
@@ -66,9 +70,7 @@ public class PlayerAttack : MonoBehaviour
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle - 90f);
     }
-
 }
-
 
 
 
