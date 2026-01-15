@@ -387,6 +387,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169806efea4623742b9838e499c5177c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Utility
+  hold: 0.8
 --- !u!4 &180197413
 Transform:
   m_ObjectHideFlags: 0
@@ -21513,10 +21514,6 @@ PrefabInstance:
     - target: {fileID: 4119078420313417491, guid: 6cf48df8da57a1c48860d8eccc95f5b0, type: 3}
       propertyPath: m_Name
       value: ShootingEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 4119078420313417491, guid: 6cf48df8da57a1c48860d8eccc95f5b0, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4687125802571095089, guid: 6cf48df8da57a1c48860d8eccc95f5b0, type: 3}
       propertyPath: player

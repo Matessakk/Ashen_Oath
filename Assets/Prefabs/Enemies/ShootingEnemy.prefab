@@ -425,8 +425,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffects
   fireDamagePerTick: 1
-  fireTickRate: 0.5
-  fireDuration: 3
+  fireTickRate: 0.1
+  fireDuration: 2
   slowMultiplier: 0.5
   slowDuration: 2
   stunDuration: 1.2
@@ -486,7 +486,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: e21813588667a1e44b73b11304818ef1, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0

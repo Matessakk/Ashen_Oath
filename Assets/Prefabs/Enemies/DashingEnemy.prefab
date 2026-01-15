@@ -281,12 +281,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffects
   fireDamagePerTick: 1
-  fireTickRate: 0.1
+  fireTickRate: 0.00001
   fireDuration: 2
-  slowMultiplier: 0.5
-  slowDuration: 2
-  stunDuration: 5
-  airKnockbackMultiplier: 100
+  slowMultiplier: 0.1
+  slowDuration: 5
+  stunDuration: 100
+  airKnockbackMultiplier: 50
 --- !u!114 &8199132822131173720
 MonoBehaviour:
   m_ObjectHideFlags: 0
