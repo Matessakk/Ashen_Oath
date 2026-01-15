@@ -15,9 +15,10 @@ public class EnemyHealth : MonoBehaviour
         knockback = GetComponent<KnockbackReceiver>();
         enemyAudio = GetComponent<EnemyAudio>();
         statusEffects = GetComponent<EnemyStatusEffects>();
+        
     }
 
-    public void TakeDamage(int dmg, Vector2 knockDir, WeaponCharge.Element element)
+    public void TakeDamage(int dmg, Vector2 knockDir, WeaponCharge.Element element, bool charged)
     {
         currentHealth -= dmg;
 
@@ -27,7 +28,7 @@ public class EnemyHealth : MonoBehaviour
         if (knockback != null && knockDir != Vector2.zero)
             knockback.ApplyKnockback(knockDir);
 
-        if (statusEffects != null)
+        if (charged && statusEffects != null)
         {
             switch (element)
             {
@@ -53,10 +54,11 @@ public class EnemyHealth : MonoBehaviour
             Die();
     }
 
+
     public void TakePureDamage(int dmg)
     {
         currentHealth -= dmg;
-
+        Debug.Log("Enemy dostal dmg za" + dmg);
         if (currentHealth <= 0)
             Die();
     }

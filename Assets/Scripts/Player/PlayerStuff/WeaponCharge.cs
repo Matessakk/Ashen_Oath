@@ -30,10 +30,7 @@ public class WeaponCharge : MonoBehaviour
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            Debug.LogError("WeaponCharge: Chyba! Chybí komponenta AudioSource na tomto objektu.");
-        }
+        
 
         weaponChange = GetComponent<WeaponChange>();
         lastWeapon = weaponChange.currentWeapon;

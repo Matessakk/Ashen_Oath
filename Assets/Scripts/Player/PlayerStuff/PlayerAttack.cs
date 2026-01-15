@@ -12,6 +12,7 @@ public class PlayerAttack : MonoBehaviour
     public Transform firePoint;
     public float arrowSpeed = 10f;
     public float swordVisibleTime = 0.3f;
+    
 
     void Start()
     {
@@ -57,8 +58,6 @@ public class PlayerAttack : MonoBehaviour
         GameObject arrow = Instantiate(arrowPrefab, firePoint.position, Quaternion.identity);
 
         bool charged = weaponCharge.TakeCharge();
-        Debug.Log("Arrow shot | charged = " + charged);
-
 
         ArrowDamage ad = arrow.GetComponent<ArrowDamage>();
         if (ad != null)

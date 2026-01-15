@@ -11,7 +11,7 @@ public class ArrowDamage : MonoBehaviour
     public GameObject earthEffect;
     public GameObject airEffect;
 
-    [Header("SFX - Fly/Impact")]
+    [Header("SFX")]
     public AudioClip fireSfx;
     public AudioClip waterSfx;
     public AudioClip earthSfx;
@@ -33,41 +33,37 @@ public class ArrowDamage : MonoBehaviour
         switch (element)
         {
             case WeaponCharge.Element.Fire:
-                if (fireEffect != null) fireEffect.SetActive(true);
+                if (fireEffect) fireEffect.SetActive(true);
                 PlaySfx(fireSfx);
                 break;
 
             case WeaponCharge.Element.Water:
-                if (waterEffect != null) waterEffect.SetActive(true);
+                if (waterEffect) waterEffect.SetActive(true);
                 PlaySfx(waterSfx);
                 break;
 
             case WeaponCharge.Element.Earth:
-                if (earthEffect != null) earthEffect.SetActive(true);
+                if (earthEffect) earthEffect.SetActive(true);
                 PlaySfx(earthSfx);
                 break;
 
             case WeaponCharge.Element.Air:
-                if (airEffect != null) airEffect.SetActive(true);
+                if (airEffect) airEffect.SetActive(true);
                 PlaySfx(airSfx);
                 break;
         }
-
-        Debug.Log("Arrow charged with " + element);
     }
 
     void PlaySfx(AudioClip clip)
     {
-        if (audioSource != null && clip != null)
+        if (audioSource && clip)
             audioSource.PlayOneShot(clip);
     }
 
     void PlaySfxAtLocation(AudioClip clip)
     {
-        if (clip != null)
-        {
+        if (clip)
             AudioSource.PlayClipAtPoint(clip, transform.position);
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -80,7 +76,7 @@ public class ArrowDamage : MonoBehaviour
         Vector2 knockDir = (collision.transform.position - transform.position).normalized;
         int dmg = charged ? chargedDamage : baseDamage;
 
-        eh.TakeDamage(dmg, knockDir, element);
+        eh.TakeDamage(dmg, knockDir, element, charged);
 
         if (charged)
         {

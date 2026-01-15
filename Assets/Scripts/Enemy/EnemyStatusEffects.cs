@@ -46,6 +46,7 @@ public class EnemyStatusEffects : MonoBehaviour
             health.TakePureDamage(fireDamagePerTick);
             yield return new WaitForSeconds(fireTickRate);
             timer -= fireTickRate;
+            Debug.Log("Enemy is on fire");
         }
     }
 
@@ -65,6 +66,7 @@ public class EnemyStatusEffects : MonoBehaviour
         yield return new WaitForSeconds(slowDuration);
 
         movement.speed = originalSpeed;
+        Debug.Log("enemy is slowed");
     }
 
     public void ApplyEarth()
@@ -83,6 +85,8 @@ public class EnemyStatusEffects : MonoBehaviour
         yield return new WaitForSeconds(stunDuration);
 
         movement.enabled = true;
+
+        Debug.Log("enemy is stunned");
     }
 
     public void ApplyAir(Vector2 dir)
