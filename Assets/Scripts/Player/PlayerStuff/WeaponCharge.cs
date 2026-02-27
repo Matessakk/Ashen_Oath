@@ -59,7 +59,7 @@ public class WeaponCharge : MonoBehaviour
             ResetCharge();
         }
 
-        if (Input.GetKey(KeyCode.E) && !isCharged)
+        if (Input.GetKey(KeyCode.R) && !isCharged)
         {
             chargeTimer += Time.deltaTime;
             if (chargeTimer >= chargeTime)

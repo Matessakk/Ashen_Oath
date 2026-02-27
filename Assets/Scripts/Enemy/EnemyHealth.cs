@@ -51,14 +51,16 @@ public class EnemyHealth : MonoBehaviour
         }
 
         if (currentHealth <= 0)
+        {
+            SkillPointManager.Instance?.AddPoint();
             Die();
+        }
     }
 
 
     public void TakePureDamage(int dmg)
     {
         currentHealth -= dmg;
-        Debug.Log("Enemy dostal dmg za" + dmg);
         if (currentHealth <= 0)
             Die();
     }

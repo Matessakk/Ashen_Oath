@@ -1,24 +1,44 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab;
+    [Header("Enemy prefabs")]
+    public List<GameObject> enemyPrefabs = new List<GameObject>();
+
     public Transform player;
-    public float cooldown = 0.5f;
 
-    float nextSpawnTime;
+    [Header("Spawn settings")]
+    public int spawnCount = 1;
+    public float spawnDelay = 1f;
 
+    void Start()
+    {
+        StartCoroutine(SpawnEnemies());   
+    }
     void Update()
     {
-        if (Input.GetMouseButtonDown(1) && Time.time >= nextSpawnTime)
+        if (Input.GetMouseButtonDown(1))
         {
-            GameObject enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            StartCoroutine(SpawnEnemies());
+        }
+    }
+
+    IEnumerator SpawnEnemies()
+    {
+        for (int i = 0; i < spawnCount; i++)
+        {
+            if (enemyPrefabs.Count == 0) yield break;
+
+            GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+            GameObject enemy = Instantiate(prefab, transform.position, Quaternion.identity);
 
             EnemyMovement em = enemy.GetComponent<EnemyMovement>();
             if (em != null)
                 em.player = player;
 
-            nextSpawnTime = Time.time + cooldown;
+            yield return new WaitForSeconds(spawnDelay);
         }
     }
 }

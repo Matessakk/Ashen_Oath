@@ -6,12 +6,9 @@ public class EnemyStatusEffects : MonoBehaviour
     public int fireDamagePerTick = 1;
     public float fireTickRate = 0.5f;
     public float fireDuration = 3f;
-
     public float slowMultiplier = 0.5f;
     public float slowDuration = 2f;
-
     public float stunDuration = 1.2f;
-
     public float airKnockbackMultiplier = 1.5f;
 
     EnemyMovement movement;
@@ -33,20 +30,17 @@ public class EnemyStatusEffects : MonoBehaviour
     {
         if (fireRoutine != null)
             StopCoroutine(fireRoutine);
-
         fireRoutine = StartCoroutine(FireRoutine());
     }
 
     IEnumerator FireRoutine()
     {
         float timer = fireDuration;
-
         while (timer > 0)
         {
-            health.TakePureDamage(fireDamagePerTick);
+            health.TakePureDamage(SkillTree.Instance.GetFireDamage(fireDamagePerTick));
             yield return new WaitForSeconds(fireTickRate);
             timer -= fireTickRate;
-            Debug.Log("Enemy is on fire");
         }
     }
 
@@ -54,7 +48,6 @@ public class EnemyStatusEffects : MonoBehaviour
     {
         if (slowRoutine != null)
             StopCoroutine(slowRoutine);
-
         slowRoutine = StartCoroutine(SlowRoutine());
     }
 
@@ -62,18 +55,14 @@ public class EnemyStatusEffects : MonoBehaviour
     {
         float originalSpeed = movement.speed;
         movement.speed *= slowMultiplier;
-
-        yield return new WaitForSeconds(slowDuration);
-
+        yield return new WaitForSeconds(SkillTree.Instance.GetSlowDuration(slowDuration));
         movement.speed = originalSpeed;
-        Debug.Log("enemy is slowed");
     }
 
     public void ApplyEarth()
     {
         if (stunRoutine != null)
             StopCoroutine(stunRoutine);
-
         stunRoutine = StartCoroutine(StunRoutine());
     }
 
@@ -81,17 +70,13 @@ public class EnemyStatusEffects : MonoBehaviour
     {
         movement.enabled = false;
         rb.linearVelocity = Vector2.zero;
-
-        yield return new WaitForSeconds(stunDuration);
-
+        yield return new WaitForSeconds(SkillTree.Instance.GetStunDuration(stunDuration));
         movement.enabled = true;
-
-        Debug.Log("enemy is stunned");
     }
 
     public void ApplyAir(Vector2 dir)
     {
-        rb.AddForce(dir * airKnockbackMultiplier, ForceMode2D.Impulse);
+        rb.AddForce(dir * SkillTree.Instance.GetAirKnockback(airKnockbackMultiplier), ForceMode2D.Impulse);
     }
 }
 

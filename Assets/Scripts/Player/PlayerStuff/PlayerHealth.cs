@@ -10,10 +10,14 @@ public class PlayerHealth : MonoBehaviour
     public float invincibilityTime = 0.3f;
     private bool isInvincible;
 
+    public System.Action<int, int> onHealthChanged;
+
+
     private void Start()
     {
         currentHealth = maxHealth;
-        
+        onHealthChanged?.Invoke(currentHealth, maxHealth);
+
     }
 
     public void TakeDamage(int amount, Vector2 knockDirection)
@@ -21,9 +25,13 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible) return;
 
         currentHealth -= amount;
-        
 
-        
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        onHealthChanged?.Invoke(currentHealth, maxHealth);
+
+
+
         GetComponent<KnockbackReceiver>()?.ApplyKnockback(knockDirection);
 
         if (currentHealth <= 0)
@@ -44,6 +52,6 @@ public class PlayerHealth : MonoBehaviour
 
     private void Die()
     {
-        
+        GetComponent<DeathHandler>()?.OnDie();
     }
 }
