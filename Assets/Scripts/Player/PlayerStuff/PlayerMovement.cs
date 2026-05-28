@@ -16,6 +16,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float dashDuration = 0.2f;
     [SerializeField] float dashCooldown = 1f;
 
+    [Header("Ground Check")]
+    [SerializeField] Transform groundCheck;
+    [SerializeField] float groundCheckRadius = 0.1f;
+    [SerializeField] LayerMask groundLayer;
+
     Rigidbody2D rb;
     KnockbackReceiver knockback;
 
@@ -34,6 +39,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        canJump = isGrounded;
+        if (!isGrounded == false) hasAirDashed = false;
         if (isDashing) return;
         if (knockback != null && knockback.IsKnocked) return;
 
@@ -105,21 +114,5 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-            canJump = true;
-            hasAirDashed = false;
-        }
-    }
-
-    void OnCollisionExit2D(Collision2D col)
-    {
-        if (col.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
-    }
+    
 }

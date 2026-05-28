@@ -25,6 +25,7 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible) return;
 
         currentHealth -= amount;
+        Debug.Log("Hrac dostal dmg");
 
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 

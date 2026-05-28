@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class KnockbackReceiver : MonoBehaviour
 {
-    [SerializeField] 
-    private float knockbackTime = 0.15f;
+    [SerializeField] float knockbackTime = 0.2f;
+    [SerializeField] float knockbackDecay = 8f;  // jak rychle se zpomalí
 
-    private Rigidbody2D rb;
-    private float timer;
+    Rigidbody2D rb;
+    float timer;
+
     public bool IsKnocked { get; private set; }
 
-    private void Awake()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
@@ -21,13 +22,16 @@ public class KnockbackReceiver : MonoBehaviour
         rb.linearVelocity = force;
     }
 
-    private void Update()
+    void Update()
     {
-        if (IsKnocked)
-        {
-            timer -= Time.deltaTime;
-            if (timer <= 0)
-                IsKnocked = false;
-        }
+        if (!IsKnocked) return;
+
+        timer -= Time.deltaTime;
+
+        // plynulé zpomalení knockbacku
+        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, new Vector2(0, rb.linearVelocity.y), knockbackDecay * Time.deltaTime);
+
+        if (timer <= 0)
+            IsKnocked = false;
     }
 }
