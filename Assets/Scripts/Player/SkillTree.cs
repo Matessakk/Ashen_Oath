@@ -1,9 +1,10 @@
 using UnityEngine;
 
-
 public class SkillTree : MonoBehaviour
 {
     public static SkillTree Instance { get; private set; }
+
+    public enum Skill { Fire, Water, Earth, Air, HP }
 
     [Header("References")]
     public WeaponCharge weaponCharge;
@@ -65,7 +66,22 @@ public class SkillTree : MonoBehaviour
         return true;
     }
 
-    
+    public void ForceUnlock(Skill skill)
+    {
+        switch (skill)
+        {
+            case Skill.Fire: fireUnlocked = true; break;
+            case Skill.Water: waterUnlocked = true; break;
+            case Skill.Earth: earthUnlocked = true; break;
+            case Skill.Air: airUnlocked = true; break;
+            case Skill.HP:
+                hpUnlocked = true;
+                playerHealth.maxHealth += 1;
+                playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+                break;
+        }
+    }
+
     public int GetFireDamage(int baseDamage) => baseDamage + (fireUnlocked ? fireExtraDamage : 0);
     public float GetSlowDuration(float baseDuration) => baseDuration + (waterUnlocked ? waterSlowBonus : 0f);
     public float GetStunDuration(float baseDuration) => baseDuration + (earthUnlocked ? earthStunBonus : 0f);

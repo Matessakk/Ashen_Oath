@@ -1,13 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class SettingsMenu : MonoBehaviour
 {
+    [Header("References")]
     public CanvasGroup canvasGroup;
     public Slider sfxSlider;
     public Toggle fullscreenToggle;
     public Button backButton;
-    public PauseMenu pauseMenu;
+
+    [Header("Volitelné — panel který se zobrazí po Back")]
+    public CanvasGroup callerPanel;
 
     public bool IsOpen { get; private set; }
 
@@ -25,10 +29,17 @@ public class SettingsMenu : MonoBehaviour
         LoadSettings();
     }
 
-    public void Open()
+    public void Open(CanvasGroup caller = null)
     {
+        if (caller != null)
+            callerPanel = caller;
+
         IsOpen = true;
         SetVisible(true);
+
+        // skryj caller panel
+        if (callerPanel != null)
+            SetCanvasGroup(callerPanel, false);
     }
 
     public void Close()
@@ -36,13 +47,9 @@ public class SettingsMenu : MonoBehaviour
         IsOpen = false;
         SetVisible(false);
 
-        var pm = pauseMenu?.GetComponent<CanvasGroup>();
-        if (pm != null)
-        {
-            pm.alpha = 1f;
-            pm.interactable = true;
-            pm.blocksRaycasts = true;
-        }
+        // zobraz caller panel zpìt
+        if (callerPanel != null)
+            SetCanvasGroup(callerPanel, true);
     }
 
     void SetSfxVolume(float value)
@@ -73,5 +80,12 @@ public class SettingsMenu : MonoBehaviour
         canvasGroup.alpha = visible ? 1f : 0f;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;
+    }
+
+    void SetCanvasGroup(CanvasGroup cg, bool visible)
+    {
+        cg.alpha = visible ? 1f : 0f;
+        cg.interactable = visible;
+        cg.blocksRaycasts = visible;
     }
 }

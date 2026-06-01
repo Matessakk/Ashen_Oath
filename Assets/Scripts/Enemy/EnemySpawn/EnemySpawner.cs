@@ -41,4 +41,9 @@ public class EnemySpawner : MonoBehaviour
             yield return new WaitForSeconds(spawnDelay);
         }
     }
+
+    public void RespawnEnemies()
+    {
+        StartCoroutine(SpawnEnemies());
+    }
 }

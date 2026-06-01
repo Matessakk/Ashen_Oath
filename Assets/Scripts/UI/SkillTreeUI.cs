@@ -16,8 +16,9 @@ public class SkillTreeUI : MonoBehaviour
     public Button airButton;
     public Button hpButton;
 
-    [Header("Unlock texty")]
     public string unlockedSuffix = " X";
+
+    public bool IsOpen { get; private set; }
 
     void Awake()
     {
@@ -31,8 +32,12 @@ public class SkillTreeUI : MonoBehaviour
         earthButton.onClick.AddListener(OnEarth);
         airButton.onClick.AddListener(OnAir);
         hpButton.onClick.AddListener(OnHP);
+    }
 
-        SkillPointManager.Instance?.onPointsChanged.Equals(null);
+    void Update()
+    {
+        if (IsOpen && Input.GetKeyDown(KeyCode.Escape))
+            Hide();
     }
 
     void OnEnable()
@@ -49,18 +54,20 @@ public class SkillTreeUI : MonoBehaviour
 
     public void Show()
     {
-        Debug.Log("SkillTreeUI Show zavolano");
+        IsOpen = true;
         SetVisible(true);
         RefreshAll();
     }
 
     public void Hide()
     {
+        IsOpen = false;
         SetVisible(false);
     }
 
     void SetVisible(bool visible)
     {
+        if (canvasGroup == null) return;
         canvasGroup.alpha = visible ? 1f : 0f;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;

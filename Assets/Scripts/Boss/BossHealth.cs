@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-
 public class BossHealth : MonoBehaviour
 {
     [Header("Stats")]
@@ -14,11 +13,15 @@ public class BossHealth : MonoBehaviour
     [Header("References")]
     public BossHealthBar healthBar;
 
+    [Header("Visibility")]
+    public float showDistance = 15f;
+
     public System.Action onDeath;
     public System.Action<int, int> onHealthChanged;
 
     KnockbackReceiver _knockback;
     BossAI _ai;
+    Transform _player;
 
     void Awake()
     {
@@ -31,6 +34,20 @@ public class BossHealth : MonoBehaviour
     {
         healthBar?.Init(maxHealth);
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        var p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null) _player = p.transform;
+
+        // skryj health bar na zaèátku
+        healthBar?.gameObject.SetActive(false);
+    }
+
+    void Update()
+    {
+        if (_player == null || healthBar == null) return;
+
+        float dist = Vector2.Distance(transform.position, _player.position);
+        healthBar.gameObject.SetActive(dist <= showDistance);
     }
 
     public void TakeDamage(int dmg, Vector2 knockDir, WeaponCharge.Element element, bool charged)

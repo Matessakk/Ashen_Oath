@@ -21,6 +21,12 @@ public class SkillPointManager : MonoBehaviour
         onPointsChanged?.Invoke(skillPoints);
     }
 
+    public void SetPoints(int amount)
+    {
+        skillPoints = amount;
+        onPointsChanged?.Invoke(skillPoints);
+    }
+
     public bool SpendPoint()
     {
         if (skillPoints <= 0) return false;

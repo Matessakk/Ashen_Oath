@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 
-
 public class CampfireRestPoint : MonoBehaviour
 {
     [Header("Heal")]
@@ -31,6 +30,9 @@ public class CampfireRestPoint : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E))
         {
+            SpawnManager.Instance?.SetCampfire(transform.position);
+            SaveSystem.Instance?.SaveGame();
+
             if (_playerInRange.currentHealth >= _playerInRange.maxHealth)
             {
                 promptUI?.ShowAlreadyFull();
@@ -42,6 +44,7 @@ public class CampfireRestPoint : MonoBehaviour
 
     IEnumerator DoRest(PlayerHealth player)
     {
+        Debug.Log("DoRest started");
         _isResting = true;
         promptUI?.HidePrompt();
 
@@ -58,11 +61,20 @@ public class CampfireRestPoint : MonoBehaviour
             _audio.PlayOneShot(healSfx);
 
         yield return new WaitForSeconds(healDuration);
+        Debug.Log("DoRest after wait");
 
         _isResting = false;
 
         if (_playerInRange != null)
             promptUI?.ShowPrompt();
+
+        FindFirstObjectByType<EnemySpawner>()?.RespawnEnemies();
+
+        SpawnManager.Instance?.SetCampfire(transform.position);
+        Debug.Log($"SpawnManager instance: {SpawnManager.Instance}");
+
+        Debug.Log($"SaveSystem instance: {SaveSystem.Instance}");
+        SaveSystem.Instance?.SaveGame();
     }
 
     void OnTriggerEnter2D(Collider2D other)

@@ -40,7 +40,7 @@ public class CampfireUI : MonoBehaviour
 
     public void HidePrompt()
     {
-        if (!gameObject.activeSelf) return;
+        if (this == null || !gameObject.activeSelf) return;
         StopAllCoroutines();
         StartCoroutine(FadeAndHide());
     }
@@ -82,5 +82,10 @@ public class CampfireUI : MonoBehaviour
         yield return new WaitForSeconds(fullMsgTime);
         yield return StartCoroutine(FadeAndHide());
         promptText.text = restText;
+    }
+
+    void OnDestroy()
+    {
+        Debug.Log("CampfireUI byl destroyed!");
     }
 }

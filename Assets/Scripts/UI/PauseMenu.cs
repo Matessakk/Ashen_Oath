@@ -1,5 +1,8 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
+
 
 public class PauseMenu : MonoBehaviour
 {
@@ -56,17 +59,13 @@ public class PauseMenu : MonoBehaviour
 
     void OpenSettings()
     {
-        SetVisible(false);
-        settingsMenu.Open();
+        settingsMenu.Open(canvasGroup);
     }
 
     void Quit()
     {
         Time.timeScale = 1f;
-        Application.Quit();
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
+        SceneManager.LoadScene("MainMenu");
     }
 
     void SetVisible(bool visible)
