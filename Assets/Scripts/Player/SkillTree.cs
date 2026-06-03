@@ -6,9 +6,9 @@ public class SkillTree : MonoBehaviour
 
     public enum Skill { Fire, Water, Earth, Air, HP }
 
-    [Header("References")]
+    [Header("References (Auto-Assigned at Runtime)")]
     public WeaponCharge weaponCharge;
-    public PlayerHealth playerHealth;
+    private PlayerHealth playerHealth;
 
     [Header("Upgrade hodnoty")]
     public int fireExtraDamage = 1;
@@ -24,8 +24,26 @@ public class SkillTree : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+        DontDestroyOnLoad(gameObject); // Keeps your unlocked upgrades intact between levels
+    }
+
+    private void Update()
+    {
+        // Automatically searches for and hooks the player if a scene transition occurred
+        if (playerHealth == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                playerHealth = playerObj.GetComponent<PlayerHealth>();
+            }
+        }
     }
 
     public bool UnlockFire()
@@ -60,9 +78,13 @@ public class SkillTree : MonoBehaviour
     {
         if (hpUnlocked || !SkillPointManager.Instance.SpendPoint()) return false;
         hpUnlocked = true;
-        playerHealth.maxHealth += 1;
-        playerHealth.currentHealth += 1;
-        playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+
+        if (playerHealth != null)
+        {
+            playerHealth.maxHealth += 1;
+            playerHealth.currentHealth += 1;
+            playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+        }
         return true;
     }
 
@@ -76,8 +98,11 @@ public class SkillTree : MonoBehaviour
             case Skill.Air: airUnlocked = true; break;
             case Skill.HP:
                 hpUnlocked = true;
-                playerHealth.maxHealth += 1;
-                playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+                if (playerHealth != null)
+                {
+                    playerHealth.maxHealth += 1;
+                    playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+                }
                 break;
         }
     }

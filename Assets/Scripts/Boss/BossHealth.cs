@@ -34,20 +34,31 @@ public class BossHealth : MonoBehaviour
     {
         healthBar?.Init(maxHealth);
         onHealthChanged?.Invoke(currentHealth, maxHealth);
-
-        var p = GameObject.FindGameObjectWithTag("Player");
-        if (p != null) _player = p.transform;
-
-        // skryj health bar na zaèátku
         healthBar?.gameObject.SetActive(false);
     }
 
     void Update()
     {
+        // Handshake validation: grabs the active player directly out of the persistent layer
+        if (_player == null && SpawnManager.Instance != null && SpawnManager.Instance.ActivePlayer != null)
+        {
+            _player = SpawnManager.Instance.ActivePlayer.transform;
+        }
+
         if (_player == null || healthBar == null) return;
 
         float dist = Vector2.Distance(transform.position, _player.position);
         healthBar.gameObject.SetActive(dist <= showDistance);
+    }
+
+    /// <summary>
+    /// COMPATIBILITY OVERLOAD: 
+    /// If your player's weapon script only sends simple integer damage data, 
+    /// this function catches it and funnels it into the pure damage processor.
+    /// </summary>
+    public void TakeDamage(int dmg)
+    {
+        TakePureDamage(dmg);
     }
 
     public void TakeDamage(int dmg, Vector2 knockDir, WeaponCharge.Element element, bool charged)

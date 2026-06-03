@@ -1,99 +1,158 @@
 using System.IO;
 using UnityEngine;
 
-/// <summary>
-/// Save System — ukládá a naèítá GameData jako JSON soubor.
-/// SETUP:
-/// 1. Vytvoø prázdný GameObject "SaveSystem" ? pøidej tento script
-/// 2. Pøiøaï PlayerHealth, playerTransform, SkillTree, SkillPointManager reference
-/// 3. Volej SaveGame() u ohništì po healu
-/// </summary>
 public class SaveSystem : MonoBehaviour
 {
     public static SaveSystem Instance { get; private set; }
 
-    [Header("References")]
+    [Header("Runtime Injected References")]
     public PlayerHealth playerHealth;
     public Transform playerTransform;
+
+    [Header("Global Scene References")]
     public SkillTree skillTree;
     public SkillPointManager skillPointManager;
+
+    // Cached skill state — survives scene transitions even if the
+    // SkillTree/SkillPointManager objects get destroyed
+    private int _cachedSkillPoints;
+    private bool _cachedFire, _cachedWater, _cachedEarth, _cachedAir, _cachedHp;
+    private bool _skillsCached = false;
 
     string savePath => Application.persistentDataPath + "/save.json";
 
     void Awake()
     {
-        Debug.Log("SaveSystem Awake");
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    public void SaveGame()
+    // Call this whenever skill state changes (on unlock, on point spend, etc.)
+    // GameManager should also call this right before any scene load
+    public void CacheSkillState()
     {
-        Debug.Log("SaveGame called");
+        if (skillPointManager != null)
+            _cachedSkillPoints = skillPointManager.skillPoints;
 
-        GameData data = new GameData();
-
-        data.currentHP = playerHealth.currentHealth;
-        data.maxHP = playerHealth.maxHealth;
-        data.playerX = playerTransform.position.x;
-        data.playerY = playerTransform.position.y;
-        data.skillPoints = skillPointManager.skillPoints;
-
-        data.fireUnlocked = skillTree.fireUnlocked;
-        data.waterUnlocked = skillTree.waterUnlocked;
-        data.earthUnlocked = skillTree.earthUnlocked;
-        data.airUnlocked = skillTree.airUnlocked;
-        data.hpUnlocked = skillTree.hpUnlocked;
-
-        data.lastCampfireX = SpawnManager.Instance._lastCampfirePosition.x;
-        data.lastCampfireY = SpawnManager.Instance._lastCampfirePosition.y;
-        data.hasCampfire = SpawnManager.Instance._hasCampfire;
-
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(savePath, json);
-        Debug.Log($"Game saved to {savePath}");
-        Debug.Log($"Saving campfire pos: {SpawnManager.Instance._lastCampfirePosition}");
-    }
-
-    public void LoadGame()
-    {
-        if (!File.Exists(savePath))
+        if (skillTree != null)
         {
-            
-            Debug.Log("No save file found.");
-            return;
+            _cachedFire = skillTree.fireUnlocked;
+            _cachedWater = skillTree.waterUnlocked;
+            _cachedEarth = skillTree.earthUnlocked;
+            _cachedAir = skillTree.airUnlocked;
+            _cachedHp = skillTree.hpUnlocked;
         }
-        
-        
 
-        string json = File.ReadAllText(savePath);
-        GameData data = JsonUtility.FromJson<GameData>(json);
-        
-        if (data.hasCampfire)
-            SpawnManager.Instance.SetCampfire(new Vector3(data.lastCampfireX, data.lastCampfireY, 0f));
+        _skillsCached = true;
+        Debug.Log("[SaveSystem] Skill state cached.");
+    }
 
-        playerHealth.maxHealth = data.maxHP;
-        playerHealth.currentHealth = data.currentHP;
-        playerHealth.onHealthChanged?.Invoke(data.currentHP, data.maxHP);
-
-        playerTransform.position = new Vector3(data.playerX, data.playerY, 0f);
-
-        skillPointManager.SetPoints(data.skillPoints);
-
-        if (data.fireUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Fire);
-        if (data.waterUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Water);
-        if (data.earthUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Earth);
-        if (data.airUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Air);
-        if (data.hpUnlocked) skillTree.ForceUnlock(SkillTree.Skill.HP);
-
-        Debug.Log("Game loaded.");
+    public void AssignPlayerReferences(GameObject playerGo)
+    {
+        playerTransform = playerGo.transform;
+        playerHealth = playerGo.GetComponent<PlayerHealth>();
     }
 
     public bool SaveExists() => File.Exists(savePath);
 
-    public void DeleteSave()
+    public string GetSavedSceneName()
     {
-        if (File.Exists(savePath))
-            File.Delete(savePath);
+        if (!SaveExists()) return "Game";
+        string json = File.ReadAllText(savePath);
+        GameData data = JsonUtility.FromJson<GameData>(json);
+        return string.IsNullOrEmpty(data.lastSavedScene) ? "Game" : data.lastSavedScene;
+    }
+
+    public void SaveGame(bool updatingCampfire = false, Vector2 freshCampfirePos = default)
+    {
+        // Always snapshot live references first if they're still alive,
+        // then fall back to the cache if they've already been destroyed
+        CacheSkillState();
+
+        GameData data = new GameData();
+
+        // Write skill points from cache
+        data.skillPoints = _cachedSkillPoints;
+
+        // Write skill unlocks from cache
+        data.fireUnlocked = _cachedFire;
+        data.waterUnlocked = _cachedWater;
+        data.earthUnlocked = _cachedEarth;
+        data.airUnlocked = _cachedAir;
+        data.hpUnlocked = _cachedHp;
+
+        // Player health still comes from the live reference (it's runtime-injected)
+        if (playerHealth != null)
+            data.maxHealth = playerHealth.maxHealth;
+
+        if (updatingCampfire)
+        {
+            data.lastCampfireX = freshCampfirePos.x;
+            data.lastCampfireY = freshCampfirePos.y;
+            data.hasCampfire = true;
+            SpawnManager.Instance.SetCampfire(freshCampfirePos);
+        }
+        else
+        {
+            data.lastCampfireX = SpawnManager.Instance._lastCampfirePosition.x;
+            data.lastCampfireY = SpawnManager.Instance._lastCampfirePosition.y;
+            data.hasCampfire = SpawnManager.Instance._hasCampfire;
+        }
+
+        data.lastSavedScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(savePath, json);
+        Debug.Log($"[SaveSystem] Saved game data successfully to: {savePath}");
+    }
+
+    public void LoadGame()
+    {
+        if (!File.Exists(savePath)) return;
+
+        string json = File.ReadAllText(savePath);
+        GameData data = JsonUtility.FromJson<GameData>(json);
+
+        if (data.hasCampfire)
+        {
+            SpawnManager.Instance._hasCampfire = true;
+            SpawnManager.Instance._lastCampfirePosition = new Vector2(data.lastCampfireX, data.lastCampfireY);
+        }
+
+        Vector3 targetSpawnPosition = data.hasCampfire
+            ? new Vector3(data.lastCampfireX, data.lastCampfireY, 0f)
+            : (Vector3)SpawnManager.Instance.defaultSpawnPoint;
+
+        GameObject spawnedPlayer = SpawnManager.Instance.SpawnPlayerAtPosition(targetSpawnPosition);
+        if (spawnedPlayer != null)
+            AssignPlayerReferences(spawnedPlayer);
+
+        if (playerHealth != null)
+        {
+            if (data.maxHealth > 0) playerHealth.maxHealth = data.maxHealth;
+            playerHealth.currentHealth = playerHealth.maxHealth;
+            playerHealth.onHealthChanged?.Invoke(playerHealth.currentHealth, playerHealth.maxHealth);
+        }
+
+        if (skillPointManager != null) skillPointManager.SetPoints(data.skillPoints);
+
+        if (skillTree != null)
+        {
+            if (data.fireUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Fire);
+            if (data.waterUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Water);
+            if (data.earthUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Earth);
+            if (data.airUnlocked) skillTree.ForceUnlock(SkillTree.Skill.Air);
+            if (data.hpUnlocked) skillTree.ForceUnlock(SkillTree.Skill.HP);
+        }
+
+        // Update cache to match what was just loaded
+        _cachedSkillPoints = data.skillPoints;
+        _cachedFire = data.fireUnlocked;
+        _cachedWater = data.waterUnlocked;
+        _cachedEarth = data.earthUnlocked;
+        _cachedAir = data.airUnlocked;
+        _cachedHp = data.hpUnlocked;
+        _skillsCached = true;
     }
 }

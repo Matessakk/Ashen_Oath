@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class BossProjectile : MonoBehaviour
 {
     public int damage = 1;

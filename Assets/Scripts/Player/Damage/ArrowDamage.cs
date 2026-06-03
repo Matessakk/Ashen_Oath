@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class ArrowDamage : MonoBehaviour
 {
     public int baseDamage = 1;
@@ -65,7 +64,8 @@ public class ArrowDamage : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!collision.CompareTag("Enemy")) return;
+        // FIX: Allows the arrow to collide with objects tagged "Enemy" OR "Boss"
+        if (!collision.CompareTag("Enemy") && !collision.CompareTag("Boss")) return;
 
         Vector2 knockDir = (collision.transform.position - transform.position).normalized;
         int dmg = charged ? chargedDamage : baseDamage;
@@ -95,7 +95,3 @@ public class ArrowDamage : MonoBehaviour
         Destroy(gameObject);
     }
 }
-
-
-
-

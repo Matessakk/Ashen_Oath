@@ -1,17 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-
 [RequireComponent(typeof(RectTransform))]
 public class ElementWheelUI : MonoBehaviour
 {
-    [Header("Reference")]
-    public WeaponCharge weaponCharge;
+    [Header("Reference (Auto-assigned at runtime)")]
+    private WeaponCharge weaponCharge;
 
     [Header("Animace")]
-    public float spinDuration = 0.3f; 
+    public float spinDuration = 0.3f;
     static readonly float[] ElementAngles = { 0f, 90f, 180f, 270f };
-    
+
     RectTransform _rect;
     WeaponCharge.Element _lastElement;
 
@@ -19,31 +18,39 @@ public class ElementWheelUI : MonoBehaviour
     float _spinTimer;
     float _fromAngle;
     float _toAngle;
-
-    
+    bool _isInitialized = false;
 
     void Awake()
     {
         _rect = GetComponent<RectTransform>();
-
-        if (weaponCharge == null)
-            weaponCharge = FindAnyObjectByType<WeaponCharge>();
-
-        _lastElement = weaponCharge.currentElement;
-        SetAngle(ElementAngles[(int)_lastElement]);
     }
 
     void Update()
     {
+        // Safely hook up to the player's weapon layout at runtime
+        if (!_isInitialized)
+        {
+            if (SpawnManager.Instance != null && SpawnManager.Instance.ActivePlayer != null)
+            {
+                weaponCharge = SpawnManager.Instance.ActivePlayer.GetComponent<WeaponCharge>();
+                if (weaponCharge != null)
+                {
+                    _lastElement = weaponCharge.currentElement;
+                    SetAngle(ElementAngles[(int)_lastElement]);
+                    _isInitialized = true;
+                }
+            }
+            return; // Skip evaluation until initialization completes
+        }
+
         if (weaponCharge == null) return;
 
-        
         if (!_isSpinning && weaponCharge.currentElement != _lastElement)
         {
             _lastElement = weaponCharge.currentElement;
 
             _fromAngle = _rect.localEulerAngles.z;
-           
+
             if (_fromAngle > 180f) _fromAngle -= 360f;
 
             _toAngle = ElementAngles[(int)_lastElement];
@@ -76,7 +83,6 @@ public class ElementWheelUI : MonoBehaviour
         _rect.localEulerAngles = new Vector3(0f, 0f, angle);
     }
 
-    
     static float EaseOutBack(float t)
     {
         const float c1 = 1.70158f;

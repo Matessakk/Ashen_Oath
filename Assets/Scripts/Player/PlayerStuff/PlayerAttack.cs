@@ -15,14 +15,14 @@ public class PlayerAttack : MonoBehaviour
     public float swordVisibleTime = 0.3f;
     public float hitboxActiveTime = 0.15f;
 
-    [Header("Knockback síla")]
+    [Header("Knockback sily")]
     public float sideKnockback = 8f;
     public float upKnockback = 6f;
     public float downKnockback = 6f;
 
     [Header("Pogo")]
-    public float pogoBounce = 14f;  // síla odrazu hráèe nahoru
-    public float pogoDownForce = 10f;  // síla knockbacku enemy dolù
+    public float pogoBounce = 14f;  // sila odrazu hrace nahoru
+    public float pogoDownForce = 10f;  // sila knockbacku enemy dolu
 
     [Header("Hitbox velikost a offset")]
     public Vector2 sideHitboxSize = new Vector2(2f, 1.5f);
@@ -122,7 +122,7 @@ public class PlayerAttack : MonoBehaviour
         {
             float dir = isFacingRight ? 1f : -1f;
             hitbox = isFacingRight ? hitboxRight : hitboxLeft;
-            enemyKnockDir = new Vector2(dir * sideKnockback, 2f);  // lehký vertical pro lepší feel
+            enemyKnockDir = new Vector2(dir * sideKnockback, 2f);  // lehky vertical pro lepsi feel
             size = sideHitboxSize;
             offset = new Vector2(sideHitboxOffset.x, sideHitboxOffset.y);
         }
@@ -152,13 +152,16 @@ public class PlayerAttack : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            if (!hit.CompareTag("Enemy")) continue;
+            // Fix: Allows either "Enemy" OR your custom "Boss" tag to pass into the filter!
+            if (!hit.CompareTag("Enemy") && !hit.CompareTag("Boss")) continue;
 
             hitSomething = true;
 
             EnemyHealth eh = hit.GetComponent<EnemyHealth>();
             if (eh != null)
+            {
                 eh.TakeDamage(dmg, enemyKnockDir, weaponCharge.currentElement, charged);
+            }
             else
             {
                 BossHealth bh = hit.GetComponent<BossHealth>();
@@ -166,11 +169,11 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // pogo bounce — odraz nahoru pøi down útoku který zasáhl nepøítele
+        // pogo bounce — odraz nahoru pri down utoku ktery zasahl nepritele nebo bosse
         if (isPogo && hitSomething)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, pogoBounce);
 
-        // side/up útok který zasáhl — malý recoil dozadu pro lepší feel
+        // side/up utok ktery zasahl — maly recoil dozadu pro lepsi feel
         if (!isPogo && hitSomething)
         {
             float recoilDir = isFacingRight ? -1f : 1f;

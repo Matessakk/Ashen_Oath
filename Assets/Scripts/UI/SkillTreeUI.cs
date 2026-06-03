@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class SkillTreeUI : MonoBehaviour
 {
     [Header("References")]
@@ -19,6 +18,7 @@ public class SkillTreeUI : MonoBehaviour
     public string unlockedSuffix = " X";
 
     public bool IsOpen { get; private set; }
+    public bool IsNearCampfire { get; set; }
 
     void Awake()
     {
@@ -36,6 +36,12 @@ public class SkillTreeUI : MonoBehaviour
 
     void Update()
     {
+        if (IsNearCampfire && Input.GetKeyDown(KeyCode.T))
+        {
+            if (IsOpen) Hide();
+            else Show();
+        }
+
         if (IsOpen && Input.GetKeyDown(KeyCode.Escape))
             Hide();
     }

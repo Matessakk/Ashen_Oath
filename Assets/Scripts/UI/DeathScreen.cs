@@ -93,11 +93,11 @@ public class DeathScreen : MonoBehaviour
         Time.timeScale = 1f;
         SpawnManager.Instance?.RespawnPlayer();
 
-        GameObject player = SpawnManager.Instance?.player;
+        GameObject player = SpawnManager.Instance?.ActivePlayer;
         if (player != null)
         {
-            player.GetComponent<PlayerMovement>().enabled = true;
-            player.GetComponent<PlayerAttack>().enabled = true;
+            if (player.TryGetComponent<PlayerMovement>(out PlayerMovement pm)) pm.enabled = true;
+            if (player.TryGetComponent<PlayerAttack>(out PlayerAttack pa)) pa.enabled = true;
         }
     }
 

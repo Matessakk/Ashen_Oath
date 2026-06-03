@@ -23,7 +23,7 @@ public class BossAI : MonoBehaviour
     public Transform projectileSpawn;
     public float projectileSpeed = 7f;
 
-    public Transform player;
+    [HideInInspector] public Transform player;
 
     Rigidbody2D rb;
     SpriteRenderer sr;
@@ -38,23 +38,25 @@ public class BossAI : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
-
-        if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player").transform;
-
-        playerHealth = player.GetComponent<PlayerHealth>();
+        FindActivePlayer();
     }
 
     void Update()
     {
-        if (isBusy || player == null) return;
+        // Re-verify the player isn't missing if they moved from another room
+        if (player == null)
+        {
+            FindActivePlayer();
+            if (player == null) return;
+        }
+
+        if (isBusy) return;
 
         meleeTimer -= Time.deltaTime;
         rangedTimer -= Time.deltaTime;
         contactTimer -= Time.deltaTime;
 
         float dist = Vector2.Distance(transform.position, player.position);
-
         sr.flipX = player.position.x < transform.position.x;
 
         if (dist > detectionRange)
@@ -79,6 +81,16 @@ public class BossAI : MonoBehaviour
         rb.linearVelocity = dir * moveSpeed;
     }
 
+    void FindActivePlayer()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            playerHealth = player.GetComponent<PlayerHealth>();
+        }
+    }
+
     IEnumerator MeleeAttack()
     {
         isBusy = true;
@@ -87,12 +99,14 @@ public class BossAI : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
 
-        
-        float dist = Vector2.Distance(transform.position, player.position);
-        if (dist <= meleeRange && playerHealth != null)
+        if (player != null)
         {
-            Vector2 knockDir = ((Vector2)player.position - (Vector2)transform.position).normalized * meleeKnockbackForce;
-            playerHealth.TakeDamage(meleeDamage, knockDir);
+            float dist = Vector2.Distance(transform.position, player.position);
+            if (dist <= meleeRange && playerHealth != null)
+            {
+                Vector2 knockDir = ((Vector2)player.position - (Vector2)transform.position).normalized * meleeKnockbackForce;
+                playerHealth.TakeDamage(meleeDamage, knockDir);
+            }
         }
 
         yield return new WaitForSeconds(0.3f);
@@ -107,7 +121,7 @@ public class BossAI : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        if (projectilePrefab != null && projectileSpawn != null)
+        if (projectilePrefab != null && projectileSpawn != null && player != null)
         {
             Vector2 dir = ((Vector2)player.position - (Vector2)projectileSpawn.position).normalized;
             GameObject proj = Instantiate(projectilePrefab, projectileSpawn.position, Quaternion.identity);
@@ -125,11 +139,15 @@ public class BossAI : MonoBehaviour
         isBusy = false;
     }
 
-   
     void OnCollisionStay2D(Collision2D collision)
     {
         if (!collision.gameObject.CompareTag("Player")) return;
         if (contactTimer > 0) return;
+
+        if (playerHealth == null && collision.gameObject != null)
+        {
+            playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
+        }
 
         Vector2 knockDir = ((Vector2)collision.transform.position - (Vector2)transform.position).normalized * meleeKnockbackForce;
         playerHealth?.TakeDamage(contactDamage, knockDir);

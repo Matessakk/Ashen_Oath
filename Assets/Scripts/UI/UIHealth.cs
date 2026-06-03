@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 public class UIHealth : MonoBehaviour
 {
-    [Header("References")]
-    public PlayerHealth playerHealth;
+    [Header("References (Auto-assigned at runtime)")]
+    private PlayerHealth playerHealth;
+
+    [Header("UI Hierarchy Configuration")]
     public Transform container;
     public GameObject hpIconPrefab;
 
@@ -14,25 +16,37 @@ public class UIHealth : MonoBehaviour
     public Sprite emptyHP;
 
     List<Image> healthPoints = new List<Image>();
+    bool _isInitialized = false;
 
-    void Start()
+    void Update()
     {
-        playerHealth.onHealthChanged += UpdateHealth;
-        BuildIcons(playerHealth.maxHealth);
-        UpdateHealth(playerHealth.currentHealth, playerHealth.maxHealth);
+        // Keep searching for the spawned player instance until it successfully binds
+        if (!_isInitialized && SpawnManager.Instance != null && SpawnManager.Instance.ActivePlayer != null)
+        {
+            playerHealth = SpawnManager.Instance.ActivePlayer.GetComponent<PlayerHealth>();
+
+            if (playerHealth != null)
+            {
+                playerHealth.onHealthChanged += UpdateHealth;
+                BuildIcons(playerHealth.maxHealth);
+                UpdateHealth(playerHealth.currentHealth, playerHealth.maxHealth);
+                _isInitialized = true;
+            }
+        }
     }
 
     void BuildIcons(int count)
     {
         foreach (var icon in healthPoints)
-            Destroy(icon.gameObject);
+        {
+            if (icon != null) Destroy(icon.gameObject);
+        }
         healthPoints.Clear();
 
         for (int i = 0; i < count; i++)
         {
             GameObject obj = Instantiate(hpIconPrefab, container);
             Image img = obj.GetComponent<Image>();
-            Debug.Log($"Created icon {i}, Image component: {img}");
             healthPoints.Add(img);
         }
     }
@@ -44,9 +58,18 @@ public class UIHealth : MonoBehaviour
 
         for (int i = 0; i < healthPoints.Count; i++)
         {
-            Debug.Log($"Icon {i}: {healthPoints[i]}, fullHP: {fullHP}, emptyHP: {emptyHP}");
-            healthPoints[i].sprite = i < current ? fullHP : emptyHP;
+            if (healthPoints[i] != null)
+            {
+                healthPoints[i].sprite = i < current ? fullHP : emptyHP;
+            }
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (playerHealth != null)
+        {
+            playerHealth.onHealthChanged -= UpdateHealth;
         }
     }
 }
-

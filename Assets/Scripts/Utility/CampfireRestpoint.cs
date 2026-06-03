@@ -7,17 +7,16 @@ public class CampfireRestPoint : MonoBehaviour
     public int healAmount = 999;
     public float healDuration = 1.2f;
 
-    [Header("References")]
-    public CampfireUI promptUI;
-    public SkillTreeUI skillTreeUI;
-
-    [Header("FX (volitelné)")]
+    [Header("FX (Optional)")]
     public ParticleSystem healEffect;
     public AudioClip healSfx;
 
     AudioSource _audio;
     PlayerHealth _playerInRange;
     bool _isResting;
+
+    private CampfireUI PromptUI => UIManager.Instance != null ? UIManager.Instance.campfireUI : null;
+    private SkillTreeUI SkillTreePanel => UIManager.Instance != null ? UIManager.Instance.skillTreeUI : null;
 
     void Awake()
     {
@@ -30,23 +29,28 @@ public class CampfireRestPoint : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            SpawnManager.Instance?.SetCampfire(transform.position);
-            SaveSystem.Instance?.SaveGame();
+            if (SpawnManager.Instance == null || SaveSystem.Instance == null)
+            {
+                Debug.LogError("Campfire Error: SpawnManager or SaveSystem is missing from the scene!");
+                return;
+            }
+
+            Vector2 campfirePos = new Vector2(transform.position.x, transform.position.y);
 
             if (_playerInRange.currentHealth >= _playerInRange.maxHealth)
             {
-                promptUI?.ShowAlreadyFull();
+                SaveSystem.Instance.SaveGame(true, campfirePos);
+                PromptUI?.ShowGameSaved();
                 return;
             }
-            StartCoroutine(DoRest(_playerInRange));
+
+            StartCoroutine(DoRest(_playerInRange, campfirePos));
         }
     }
 
-    IEnumerator DoRest(PlayerHealth player)
+    IEnumerator DoRest(PlayerHealth player, Vector2 campfirePos)
     {
-        Debug.Log("DoRest started");
         _isResting = true;
-        promptUI?.HidePrompt();
 
         int amount = healAmount >= 999
             ? player.maxHealth - player.currentHealth
@@ -61,20 +65,16 @@ public class CampfireRestPoint : MonoBehaviour
             _audio.PlayOneShot(healSfx);
 
         yield return new WaitForSeconds(healDuration);
-        Debug.Log("DoRest after wait");
+
+        foreach (EnemySpawner spawner in FindObjectsByType<EnemySpawner>(FindObjectsSortMode.None))
+        {
+            spawner.RespawnEnemies();
+        }
+
+        SaveSystem.Instance?.SaveGame(true, campfirePos);
+        PromptUI?.ShowGameSaved();
 
         _isResting = false;
-
-        if (_playerInRange != null)
-            promptUI?.ShowPrompt();
-
-        FindFirstObjectByType<EnemySpawner>()?.RespawnEnemies();
-
-        SpawnManager.Instance?.SetCampfire(transform.position);
-        Debug.Log($"SpawnManager instance: {SpawnManager.Instance}");
-
-        Debug.Log($"SaveSystem instance: {SaveSystem.Instance}");
-        SaveSystem.Instance?.SaveGame();
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -84,8 +84,11 @@ public class CampfireRestPoint : MonoBehaviour
             _playerInRange = other.GetComponent<PlayerHealth>();
             if (_playerInRange != null)
             {
-                promptUI?.ShowPrompt();
-                skillTreeUI?.Show();
+                PromptUI?.ShowPrompt();
+                if (SkillTreePanel != null)
+                {
+                    SkillTreePanel.IsNearCampfire = true;
+                }
             }
         }
     }
@@ -94,10 +97,15 @@ public class CampfireRestPoint : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            if (SkillTreePanel != null)
+            {
+                SkillTreePanel.IsNearCampfire = false;
+                SkillTreePanel.Hide();
+            }
+            PromptUI?.HidePrompt();
+
             _playerInRange = null;
             _isResting = false;
-            promptUI?.HidePrompt();
-            skillTreeUI?.Hide();
         }
     }
 }

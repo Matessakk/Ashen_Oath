@@ -3,9 +3,6 @@ using UnityEngine;
 
 public class DeathHandler : MonoBehaviour
 {
-    [Header("References")]
-    public DeathScreen deathScreen;
-
     [Header("Nastavení")]
     public float deathDelay = 0.5f;
     public bool freezeTime = true;
@@ -17,14 +14,29 @@ public class DeathHandler : MonoBehaviour
 
     IEnumerator DieSequence()
     {
-        GetComponent<PlayerMovement>().enabled = false;
-        GetComponent<PlayerAttack>().enabled = false;
+        if (TryGetComponent<PlayerMovement>(out PlayerMovement movement))
+        {
+            movement.enabled = false;
+        }
+
+        if (TryGetComponent<PlayerAttack>(out PlayerAttack attack))
+        {
+            attack.enabled = false;
+        }
 
         yield return new WaitForSeconds(deathDelay);
 
         if (freezeTime)
             Time.timeScale = 0f;
 
-        deathScreen?.Show();
+        // Fetch the death screen safely through our global UI Manager instance
+        if (UIManager.Instance != null && UIManager.Instance.deathScreen != null)
+        {
+            UIManager.Instance.deathScreen.Show();
+        }
+        else
+        {
+            Debug.LogError("DeathHandler: Cannot show death screen because UIManager or DeathScreen reference is missing!");
+        }
     }
 }

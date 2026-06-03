@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-
-
 public class PauseMenu : MonoBehaviour
 {
     public CanvasGroup canvasGroup;
@@ -30,7 +28,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (settingsMenu.IsOpen)
+            if (settingsMenu != null && settingsMenu.IsOpen)
             {
                 settingsMenu.Close();
                 return;
@@ -59,7 +57,7 @@ public class PauseMenu : MonoBehaviour
 
     void OpenSettings()
     {
-        settingsMenu.Open(canvasGroup);
+        settingsMenu?.Open(canvasGroup);
     }
 
     void Quit()
@@ -70,6 +68,7 @@ public class PauseMenu : MonoBehaviour
 
     void SetVisible(bool visible)
     {
+        if (canvasGroup == null) return;
         canvasGroup.alpha = visible ? 1f : 0f;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;
