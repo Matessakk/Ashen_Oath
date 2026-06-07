@@ -17,7 +17,6 @@ public class SaveSystem : MonoBehaviour
     // SkillTree/SkillPointManager objects get destroyed
     private int _cachedSkillPoints;
     private bool _cachedFire, _cachedWater, _cachedEarth, _cachedAir, _cachedHp;
-    
 
     string savePath => Application.persistentDataPath + "/save.json";
 
@@ -44,7 +43,6 @@ public class SaveSystem : MonoBehaviour
             _cachedHp = skillTree.hpUnlocked;
         }
 
-        
         Debug.Log("[SaveSystem] Skill state cached.");
     }
 
@@ -153,6 +151,5 @@ public class SaveSystem : MonoBehaviour
         _cachedEarth = data.earthUnlocked;
         _cachedAir = data.airUnlocked;
         _cachedHp = data.hpUnlocked;
-        
     }
 }

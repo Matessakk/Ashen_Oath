@@ -29,7 +29,22 @@ public class EnemyMovement : MonoBehaviour
     protected virtual void Update()
     {
         if (knockback != null && knockback.IsKnocked) return;
-        if (player == null) return;
+
+        // If reference is missing, dead, or an old destroyed instance
+        if (player == null)
+        {
+            GameObject freshPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (freshPlayer != null)
+            {
+                player = freshPlayer.transform;
+                Debug.Log($"[EnemyMovement] {gameObject.name} recovered lost player target mid-frame. Re-targeted instance ID: {freshPlayer.GetInstanceID()}");
+            }
+            else
+            {
+                // This stops it completely if player isn't loaded
+                return;
+            }
+        }
 
         float dist = Vector2.Distance(transform.position, player.position);
         playerDetected = dist <= detectionRange;
@@ -60,7 +75,7 @@ public class EnemyMovement : MonoBehaviour
     protected void ResetWander()
     {
         float angle = Random.Range(0f, 360f);
-        wanderDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)).normalized;
+        wanderDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
         wanderTimer = Random.Range(wanderTimeMin, wanderTimeMax);
     }
 

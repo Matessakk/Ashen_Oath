@@ -24,6 +24,31 @@ public class SpawnManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // ---------------------------------------------------------------
+    // FIX: Subscribe to sceneLoaded so we always wipe the stale
+    // activePlayer reference when a new scene is brought in.
+    // Without this, SpawnPlayerAtPosition skips Instantiate and just
+    // teleports the destroyed/missing old object instead.
+    // ---------------------------------------------------------------
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Always clear cached ref on every scene load so the next
+        // SpawnPlayerAtPosition call always instantiates fresh.
+        activePlayer = null;
+        Debug.Log("[SpawnManager] Scene loaded — activePlayer reference cleared.");
+    }
+    // ---------------------------------------------------------------
+
     private void ValidateActivePlayer()
     {
         if (activePlayer == null)
@@ -47,23 +72,34 @@ public class SpawnManager : MonoBehaviour
     public void SpawnFreshPlayer()
     {
         if (activePlayer != null) Destroy(activePlayer);
+        activePlayer = null;
 
         LoadPrefabFromResources();
 
         if (playerPrefab != null)
         {
-            activePlayer = Instantiate(playerPrefab, new Vector3(defaultSpawnPoint.x, defaultSpawnPoint.y, 0f), Quaternion.identity);
+            activePlayer = Instantiate(
+                playerPrefab,
+                new Vector3(defaultSpawnPoint.x, defaultSpawnPoint.y, 0f),
+                Quaternion.identity
+            );
         }
     }
 
     public GameObject SpawnPlayerAtPosition(Vector2 position)
     {
+        // activePlayer is guaranteed null here after OnSceneLoaded clears it,
+        // so we always take the Instantiate path on a fresh scene load.
         ValidateActivePlayer();
         LoadPrefabFromResources();
 
         if (activePlayer == null && playerPrefab != null)
         {
-            activePlayer = Instantiate(playerPrefab, new Vector3(position.x, position.y, 0f), Quaternion.identity);
+            activePlayer = Instantiate(
+                playerPrefab,
+                new Vector3(position.x, position.y, 0f),
+                Quaternion.identity
+            );
             return activePlayer;
         }
 

@@ -29,6 +29,7 @@ public class MainMenu : MonoBehaviour
     void OnPlay()
     {
         SceneManager.LoadScene(gameSceneName);
+        GameManager.Instance.StartPlaythrough();
     }
 
     void OnSettings()
