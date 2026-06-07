@@ -15,17 +15,15 @@ public class GameData
     public int maxHealth;         
 
     [Header("Weapon States")]
-    public int currentWeaponType; // Stores which weapon was equipped (Sword/Bow)
+    public int currentWeaponType;
 
     [Header("Scene & Spawn Points")]
-    public string lastSavedScene; // Saves which room/level you were last standing in
+    public string lastSavedScene; 
     public float lastCampfireX;
     public float lastCampfireY;
     public bool hasCampfire;
 
-    /// <summary>
-    /// Default values used when starting a completely brand new game slot.
-    /// </summary>
+    
     public GameData()
     {
         skillPoints = 0;
@@ -35,12 +33,12 @@ public class GameData
         airUnlocked = false;
         hpUnlocked = false;
 
-        // Default base starting stats before purchasing upgrades
-        maxHealth = 5;            // Matches your PlayerHealth base maxHealth
         
-        currentWeaponType = 0;    // Default weapon index (e.g., Sword)
+        maxHealth = 5;            
+        
+        currentWeaponType = 0;    
 
-        lastSavedScene = "";      // Will be filled automatically by your SaveSystem
+        lastSavedScene = "";      
         lastCampfireX = 0f;
         lastCampfireY = 0f;
         hasCampfire = false;

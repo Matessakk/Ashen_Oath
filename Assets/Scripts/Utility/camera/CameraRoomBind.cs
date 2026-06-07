@@ -10,7 +10,6 @@ public class CameraRoomBind : MonoBehaviour
 
     void Start()
     {
-        // Camera starts disabled — GameManager re-enables it after the player spawns
         enabled = false;
     }
 
@@ -26,7 +25,7 @@ public class CameraRoomBind : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
     }
 
-    // Called by GameManager right after player spawns, while screen is still black
+    
     public void SnapToPlayer()
     {
         FindPlayer();

@@ -16,7 +16,6 @@ public class SpawnManager : MonoBehaviour
     public bool _hasCampfire;
 
     private Vector2 nextSpawnPoint;
-    private bool hasCustomSpawn;
 
     void Awake()
     {
@@ -36,7 +35,6 @@ public class SpawnManager : MonoBehaviour
     public void SetNextSpawnPoint(Vector2 position)
     {
         nextSpawnPoint = position;
-        hasCustomSpawn = true;
         Debug.Log("[SpawnManager] Next spawn point locked to: " + position);
     }
 

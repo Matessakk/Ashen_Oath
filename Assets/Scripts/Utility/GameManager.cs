@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Loading Screen")]
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private TMP_FontAsset loadingScreenFont;
 
     private Canvas _loadCanvas;
     private CanvasGroup _loadGroup;
@@ -21,7 +23,6 @@ public class GameManager : MonoBehaviour
 
         BuildLoadingCanvas();
 
-        // Show it immediately, right here in Awake — before ANY other script runs
         _loadGroup.alpha = 1f;
         _loadGroup.blocksRaycasts = true;
         _loadCanvas.gameObject.SetActive(true);
@@ -54,19 +55,29 @@ public class GameManager : MonoBehaviour
 
         GameObject textGo = new GameObject("LoadingText");
         textGo.transform.SetParent(canvasGo.transform, false);
-        Text label = textGo.AddComponent<Text>();
-        label.text = "Loading...";
-        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.fontSize = 28;
-        label.color = Color.white;
-        label.alignment = TextAnchor.MiddleCenter;
-        RectTransform labelRect = label.GetComponent<RectTransform>();
-        labelRect.anchorMin = new Vector2(0.5f, 0.5f);
-        labelRect.anchorMax = new Vector2(0.5f, 0.5f);
-        labelRect.sizeDelta = new Vector2(300f, 60f);
-        labelRect.anchoredPosition = Vector2.zero;
 
-        DontDestroyOnLoad(canvasGo);
+        TextMeshProUGUI label = textGo.AddComponent<TextMeshProUGUI>();
+        label.text = "Loading...";
+
+        if (loadingScreenFont != null)
+        {
+            label.font = loadingScreenFont;
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] No TMP Loading Screen Font assigned in Inspector! Using TMP default.");
+        }
+
+        label.fontSize = 40;
+        label.color = Color.white;
+        label.alignment = TextAlignmentOptions.BottomLeft;
+
+        RectTransform labelRect = label.GetComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0f, 0f);
+        labelRect.anchorMax = new Vector2(0f, 0f);
+        labelRect.pivot = new Vector2(0f, 0f);
+        labelRect.sizeDelta = new Vector2(300f, 60f);
+        labelRect.anchoredPosition = new Vector2(40f, 40f);
     }
 
     IEnumerator FadeLoadingScreen(float targetAlpha)
@@ -95,12 +106,39 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LoadSequence(targetScene, isNew, false));
     }
 
+    /// <summary>
+    /// Handles shifting the player across areas in the EXACT SAME scene smoothly.
+    /// </summary>
+    public IEnumerator LocalTeleportSequence(Vector2 destination)
+    {
+        yield return StartCoroutine(FadeLoadingScreen(1f));
+
+        CameraRoomBind cam = FindFirstObjectByType<CameraRoomBind>();
+        if (cam != null) cam.enabled = false;
+
+        if (SpawnManager.Instance != null)
+        {
+            SpawnManager.Instance.SpawnPlayerAtPosition(destination);
+            Debug.Log("[GameManager] Local teleported player to " + destination);
+        }
+
+        yield return new WaitForEndOfFrame();
+
+        cam = FindFirstObjectByType<CameraRoomBind>();
+        if (cam != null)
+        {
+            cam.enabled = true;
+            cam.SnapToPlayer();
+        }
+
+        yield return StartCoroutine(FadeLoadingScreen(0f));
+    }
+
+    /// <summary>
+    /// Handles full asynchronous loads between completely separate Unity scenes.
+    /// </summary>
     public IEnumerator LoadSequence(string sceneName, bool isNewGame, bool isAreaTransition = false)
     {
-        // Canvas is already fully opaque from Awake on first load,
-        // but for subsequent calls (area transitions) we fade it back up
-        
-
         SaveSystem.Instance.CacheSkillState();
 
         yield return StartCoroutine(FadeLoadingScreen(1f));
