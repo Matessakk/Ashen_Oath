@@ -89,13 +89,19 @@ public class SaveSystem : MonoBehaviour
             data.lastCampfireX = freshCampfirePos.x;
             data.lastCampfireY = freshCampfirePos.y;
             data.hasCampfire = true;
-            SpawnManager.Instance.SetCampfire(freshCampfirePos);
+            if (SpawnManager.Instance != null)
+            {
+                SpawnManager.Instance.SetCampfire(freshCampfirePos);
+            }
         }
         else
         {
-            data.lastCampfireX = SpawnManager.Instance._lastCampfirePosition.x;
-            data.lastCampfireY = SpawnManager.Instance._lastCampfirePosition.y;
-            data.hasCampfire = SpawnManager.Instance._hasCampfire;
+            if (SpawnManager.Instance != null)
+            {
+                data.lastCampfireX = SpawnManager.Instance._lastCampfirePosition.x;
+                data.lastCampfireY = SpawnManager.Instance._lastCampfirePosition.y;
+                data.hasCampfire = SpawnManager.Instance._hasCampfire;
+            }
         }
 
         data.lastSavedScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
@@ -107,24 +113,39 @@ public class SaveSystem : MonoBehaviour
 
     public void LoadGame()
     {
-        if (!File.Exists(savePath)) return;
+        // FIX: Instead of returning out completely and causing a black screen crash, 
+        // fallback to spawning a standard player instance if the file is missing!
+        if (!File.Exists(savePath))
+        {
+            Debug.LogWarning("[SaveSystem] LoadGame invoked but no JSON save profile exists. Spawning fallback default player.");
+            if (SpawnManager.Instance != null)
+            {
+                SpawnManager.Instance.SpawnFreshPlayer();
+            }
+            return;
+        }
 
         string json = File.ReadAllText(savePath);
         GameData data = JsonUtility.FromJson<GameData>(json);
 
-        if (data.hasCampfire)
+        if (SpawnManager.Instance != null)
         {
-            SpawnManager.Instance._hasCampfire = true;
-            SpawnManager.Instance._lastCampfirePosition = new Vector2(data.lastCampfireX, data.lastCampfireY);
+            if (data.hasCampfire)
+            {
+                SpawnManager.Instance._hasCampfire = true;
+                SpawnManager.Instance._lastCampfirePosition = new Vector2(data.lastCampfireX, data.lastCampfireY);
+            }
+
+            Vector3 targetSpawnPosition = data.hasCampfire
+                ? new Vector3(data.lastCampfireX, data.lastCampfireY, 0f)
+                : (Vector3)SpawnManager.Instance.defaultSpawnPoint;
+
+            GameObject spawnedPlayer = SpawnManager.Instance.SpawnPlayerAtPosition(targetSpawnPosition);
+            if (spawnedPlayer != null)
+            {
+                AssignPlayerReferences(spawnedPlayer);
+            }
         }
-
-        Vector3 targetSpawnPosition = data.hasCampfire
-            ? new Vector3(data.lastCampfireX, data.lastCampfireY, 0f)
-            : (Vector3)SpawnManager.Instance.defaultSpawnPoint;
-
-        GameObject spawnedPlayer = SpawnManager.Instance.SpawnPlayerAtPosition(targetSpawnPosition);
-        if (spawnedPlayer != null)
-            AssignPlayerReferences(spawnedPlayer);
 
         if (playerHealth != null)
         {

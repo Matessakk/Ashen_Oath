@@ -101,18 +101,33 @@ public class GameManager : MonoBehaviour
 
     public void StartPlaythrough()
     {
-        // Slam the loading screen on instantly before anything else runs
-        _loadGroup.alpha = 1f;
-        _loadGroup.blocksRaycasts = true;
-        _loadCanvas.gameObject.SetActive(true);
-
         bool isNew = !SaveSystem.Instance.SaveExists();
         string targetScene = isNew ? "Game" : SaveSystem.Instance.GetSavedSceneName();
         Debug.Log($"[GameManager] StartPlaythrough initialized. Target Scene: {targetScene} | IsNewGame: {isNew}");
         StartCoroutine(LoadSequence(targetScene, isNew, false));
     }
 
-    public IEnumerator LocalTeleportSequence(Vector2 destination)
+    public void QuitToMainMenuClean()
+    {
+        Debug.Log("[GameManager] Initiating hard cleanup sequence for Main Menu exit...");
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            DestroyImmediate(player);
+            Debug.Log("[GameManager] Persistent player reference permanently purged from hierarchy.");
+        }
+
+        if (SpawnManager.Instance != null)
+        {
+            DestroyImmediate(SpawnManager.Instance.gameObject);
+            Debug.Log("[GameManager] SpawnManager instance destroyed to clear internal reference caching.");
+        }
+
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public IEnumerator LocalTeleportSequence(Vector2 destination, float upwardForce = 0f)
     {
         yield return StartCoroutine(FadeLoadingScreen(1f));
 
@@ -134,6 +149,17 @@ public class GameManager : MonoBehaviour
         }
 
         yield return StartCoroutine(FadeLoadingScreen(0f));
+
+        if (upwardForce > 0f)
+        {
+            GameObject player = SpawnManager.Instance?.ActivePlayer;
+            if (player != null)
+            {
+                Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, upwardForce);
+            }
+        }
     }
 
     public IEnumerator LoadSequence(string sceneName, bool isNewGame, bool isAreaTransition = false)
@@ -143,44 +169,33 @@ public class GameManager : MonoBehaviour
 
         yield return StartCoroutine(FadeLoadingScreen(1f));
 
-        // --- STEP 1: FORCE-DESTROY OLD PLAYER CLONES IMMEDIATELY ---
+        // --- STEP 1: PRE-DISPATCH ABSOLUTE PURGE ---
         CameraRoomBind cam = FindFirstObjectByType<CameraRoomBind>();
-        if (cam != null)
-        {
-            cam.enabled = false;
-            Debug.Log("[GameManager] Disabled old camera script prior to scene dispatch.");
-        }
+        if (cam != null) cam.enabled = false;
 
-        // Wipe out any DontDestroyOnLoad player objects instantly before transitioning
         GameObject[] oldPlayers = GameObject.FindGameObjectsWithTag("Player");
-        Debug.Log($"[GameManager] Found {oldPlayers.Length} old player instances. Executing immediate cleanup...");
         foreach (GameObject oldPlayer in oldPlayers)
         {
             DestroyImmediate(oldPlayer);
         }
 
-        // --- STEP 2: SCENE DISPATCH LOAD LOOP ---
+        // --- STEP 2: LOAD NEW WORLD SCENE ---
         AsyncOperation ao = SceneManager.LoadSceneAsync(sceneName);
         while (!ao.isDone) yield return null;
         yield return new WaitForEndOfFrame();
 
-        Debug.Log("[GameManager] Scene loaded. Spawning enemy arrays...");
-
-        // Respawn enemies so they populate the fresh scene hierarchy layout first
         foreach (EnemySpawner spawner in FindObjectsByType<EnemySpawner>(FindObjectsSortMode.None))
         {
             spawner.RespawnEnemies();
         }
 
-        // --- STEP 3: CREATING THE NEW PLAYER INSTANCE ---
+        // --- STEP 3: CONSTRUCT LIVE PLAYER THROUGH CLEAN PIPELINE ---
         if (isNewGame)
         {
-            Debug.Log("[GameManager] Setting up a completely fresh player instance.");
-            SpawnManager.Instance.SpawnFreshPlayer();
+            if (SpawnManager.Instance != null) SpawnManager.Instance.SpawnFreshPlayer();
         }
         else
         {
-            Debug.Log("[GameManager] Prompting SaveSystem to build player at last saved Campfire location.");
             SaveSystem.Instance.LoadGame();
         }
 
@@ -190,35 +205,29 @@ public class GameManager : MonoBehaviour
             SpawnManager.Instance.SpawnPlayerAtPosition(doorTarget);
         }
 
-        // Wait a single physical frame loop for engines to seat the instantiation parameters
         yield return new WaitForEndOfFrame();
 
-        // --- STEP 4: RETRIEVE UNIFORM REFERENCE AND DISTRIBUTE TARGETS ---
-        GameObject activePlayer = SpawnManager.Instance.ActivePlayer;
-        if (activePlayer == null)
+        // --- STEP 4: MANDATORY HIERARCHY EVALUATION ---
+        GameObject activePlayer = GameObject.FindGameObjectWithTag("Player");
+        if (activePlayer == null && SpawnManager.Instance != null)
         {
-            activePlayer = GameObject.FindGameObjectWithTag("Player");
+            activePlayer = SpawnManager.Instance.ActivePlayer;
         }
 
         if (activePlayer != null)
         {
-            int freshID = activePlayer.GetInstanceID();
-            Debug.Log($"[GameManager] Fresh Player verified at position: {activePlayer.transform.position}. Instance ID: {freshID}");
-
+            Debug.Log($"[GameManager] Active Player tracked successfully at: {activePlayer.transform.position}");
             SaveSystem.Instance.AssignPlayerReferences(activePlayer);
 
-            // --- GRAVITY MAP COLLISION STABILIZATION GUARD ---
-            // Briefly pause physics loop updates to prevent the player falling through asynchronous assets
             Rigidbody2D playerRb = activePlayer.GetComponent<Rigidbody2D>();
             bool originalSimulatedState = true;
             if (playerRb != null)
             {
                 originalSimulatedState = playerRb.simulated;
                 playerRb.simulated = false;
-                Debug.Log("[GameManager] Player physics paused temporarily during environmental caching.");
             }
 
-            // Assign camera tracking parameters
+            // Bind Camera Room System
             cam = FindFirstObjectByType<CameraRoomBind>();
             if (cam != null)
             {
@@ -227,43 +236,38 @@ public class GameManager : MonoBehaviour
                 cam.SnapToPlayer();
             }
 
-            // Map target values to regular enemies
+            // Bind Normal Enemies
             EnemyMovement[] allEnemies = FindObjectsByType<EnemyMovement>(FindObjectsSortMode.None);
-            Debug.Log($"[GameManager] Re-targeting {allEnemies.Length} standard EnemyMovement instances.");
             foreach (EnemyMovement enemy in allEnemies)
             {
                 enemy.player = activePlayer.transform;
             }
 
-            // Map target values to Boss unit layouts
+            // Bind Boss AI
             BossAI boss = FindFirstObjectByType<BossAI>();
             if (boss != null)
             {
                 boss.player = activePlayer.transform;
-                Debug.Log("[GameManager] Core player target assigned to live BossAI element successfully.");
+                Debug.Log("[GameManager] BossAI bound to verified player object.");
             }
 
             PlayerHealth hp = activePlayer.GetComponent<PlayerHealth>();
             if (hp != null)
                 hp.onHealthChanged?.Invoke(hp.currentHealth, hp.maxHealth);
 
-            // Give physical tile layers ample execution space to seat themselves before unfreeze
             yield return new WaitForSeconds(0.2f);
 
-            // Restore active world gravity execution cleanly above static ground meshes
             if (playerRb != null)
             {
                 playerRb.simulated = originalSimulatedState;
                 playerRb.linearVelocity = Vector2.zero;
-                Debug.Log("[GameManager] Physics execution restored safely.");
             }
         }
         else
         {
-            Debug.LogError("[GameManager] CRITICAL CORRUPTION ERROR: activePlayer returned NULL from all query arrays!");
+            Debug.LogError("[GameManager] CRITICAL CORRUPTION: No player object found via FindGameObjectWithTag or SpawnManager!");
         }
 
         yield return StartCoroutine(FadeLoadingScreen(0f));
-        Debug.Log("[GameManager] LoadSequence execution finished completely.");
     }
 }
