@@ -26,7 +26,6 @@ public class CampfireRestPoint : MonoBehaviour
     void Update()
     {
         if (_playerInRange == null || _isResting) return;
-
         if (Input.GetKeyDown(KeyCode.E))
         {
             if (SpawnManager.Instance == null || SaveSystem.Instance == null)
@@ -66,6 +65,12 @@ public class CampfireRestPoint : MonoBehaviour
 
         yield return new WaitForSeconds(healDuration);
 
+        // Destroy all existing enemies before respawning fresh ones
+        foreach (EnemyMovement enemy in FindObjectsByType<EnemyMovement>(FindObjectsSortMode.None))
+        {
+            Destroy(enemy.gameObject);
+        }
+
         foreach (EnemySpawner spawner in FindObjectsByType<EnemySpawner>(FindObjectsSortMode.None))
         {
             spawner.RespawnEnemies();
@@ -86,9 +91,7 @@ public class CampfireRestPoint : MonoBehaviour
             {
                 PromptUI?.ShowPrompt();
                 if (SkillTreePanel != null)
-                {
                     SkillTreePanel.IsNearCampfire = true;
-                }
             }
         }
     }
@@ -103,7 +106,6 @@ public class CampfireRestPoint : MonoBehaviour
                 SkillTreePanel.Hide();
             }
             PromptUI?.HidePrompt();
-
             _playerInRange = null;
             _isResting = false;
         }

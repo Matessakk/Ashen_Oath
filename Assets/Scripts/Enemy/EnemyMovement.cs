@@ -15,7 +15,7 @@ public class EnemyMovement : MonoBehaviour
 
     protected bool playerDetected;
     protected Vector2 wanderDirection;
-    float wanderTimer;
+    protected float wanderTimer;
 
     protected bool facingRight = false;
 
@@ -58,18 +58,17 @@ public class EnemyMovement : MonoBehaviour
     protected virtual void Wander()
     {
         wanderTimer -= Time.deltaTime;
-
         if (wanderTimer <= 0)
             ResetWander();
 
-        rb.MovePosition(rb.position + wanderDirection * wanderSpeed * Time.deltaTime);
+        rb.linearVelocity = new Vector2(wanderDirection.x * wanderSpeed, rb.linearVelocity.y);
     }
 
     protected virtual void ChasePlayer()
     {
         Vector2 dir = (player.position - transform.position).normalized;
         FlipByDirection(dir.x);
-        rb.MovePosition(rb.position + dir * speed * Time.deltaTime);
+        rb.linearVelocity = new Vector2(dir.x * speed, rb.linearVelocity.y);
     }
 
     protected void ResetWander()

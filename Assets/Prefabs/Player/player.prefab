@@ -212,7 +212,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackReceiver
   knockbackTime: 0.5
-  knockbackDecay: 8
+  knockbackDecay: 2
 --- !u!61 &4823536412892971966
 BoxCollider2D:
   m_ObjectHideFlags: 0

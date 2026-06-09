@@ -41,13 +41,9 @@ public class DashingEnemy : EnemyMovement
     void StartDash()
     {
         isDashing = true;
-
         float dirX = Mathf.Sign(player.position.x - transform.position.x);
-
         FlipByDirection(dirX);
-
-        rb.linearVelocity = new Vector2(dirX * dashForce, 0f);
-
+        rb.linearVelocity = new Vector2(dirX * dashForce, rb.linearVelocity.y); // keep Y
         dashEndTime = Time.time + dashDuration;
         nextDashTime = Time.time + dashCooldown;
     }
@@ -55,7 +51,7 @@ public class DashingEnemy : EnemyMovement
     void EndDash()
     {
         isDashing = false;
-        rb.linearVelocity = Vector2.zero;
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y); // keep Y, zero only X
     }
 }
 

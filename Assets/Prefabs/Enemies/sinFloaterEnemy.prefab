@@ -434,7 +434,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.12528324, y: 0.24207497}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -444,7 +444,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.4799023, y: 1.4841499}
   m_EdgeRadius: 0
 --- !u!114 &4870441881063799501
 MonoBehaviour:
@@ -459,7 +459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
   damage: 1
-  knockForce: 20
+  knockForce: 5
   damageCooldown: 0.8
 --- !u!114 &7447076474608406277
 MonoBehaviour:
@@ -506,7 +506,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b926e3b32b186a44cad1d434da860633, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackReceiver
-  knockbackTime: 0.15
+  knockbackTime: 1.5
+  knockbackDecay: 8
 --- !u!114 &730279099780880617
 MonoBehaviour:
   m_ObjectHideFlags: 0

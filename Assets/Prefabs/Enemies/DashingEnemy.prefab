@@ -104,15 +104,15 @@ GameObject:
   - component: {fileID: 935167802430381508}
   - component: {fileID: 5780646322140742955}
   - component: {fileID: 3777070121958372087}
+  - component: {fileID: 2243758391826784652}
   - component: {fileID: 605561823228020799}
-  - component: {fileID: 2241973799176695237}
   - component: {fileID: 5982923682996368387}
   - component: {fileID: 8199132822131173720}
   - component: {fileID: 5913740319992718256}
-  - component: {fileID: 2575351750650643651}
   - component: {fileID: 7016856863352635932}
   - component: {fileID: 2555318835341760512}
   - component: {fileID: 5367893095730563237}
+  - component: {fileID: 3843933582266070036}
   m_Layer: 0
   m_Name: DashingEnemy
   m_TagString: Enemy
@@ -183,8 +183,30 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 6
+  m_CollisionDetection: 1
+  m_Constraints: 4
+--- !u!114 &2243758391826784652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5312161194555250998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9300397ad81d92f419da2e0534061578, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashingEnemy
+  player: {fileID: 0}
+  speed: 5
+  detectionRange: 15
+  wanderSpeed: 1
+  wanderTimeMin: 1
+  wanderTimeMax: 10
+  dashForce: 10
+  dashCooldown: 1
+  dashDuration: 0.2
+  frontAngle: 60
 --- !u!70 &605561823228020799
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -222,52 +244,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 2, y: 1}
   m_Direction: 0
---- !u!61 &2241973799176695237
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5312161194555250998}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!114 &5982923682996368387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,7 +257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusEffects
   fireDamagePerTick: 1
-  fireTickRate: 0.00001
+  fireTickRate: 1
   fireDuration: 2
   slowMultiplier: 0.1
   slowDuration: 5
@@ -300,7 +276,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
   damage: 1
-  knockForce: 20
+  knockForce: 5
   damageCooldown: 0.8
 --- !u!114 &5913740319992718256
 MonoBehaviour:
@@ -316,28 +292,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 3
   currentHealth: 3
---- !u!114 &2575351750650643651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5312161194555250998}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9300397ad81d92f419da2e0534061578, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SkullEnemy
-  player: {fileID: 0}
-  speed: 8
-  detectionRange: 15
-  wanderSpeed: 3
-  wanderTimeMin: 5
-  wanderTimeMax: 10
-  dashForce: 42.5
-  dashCooldown: 5
-  dashDuration: 2.5
-  frontAngle: 90
 --- !u!114 &7016856863352635932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,7 +304,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b926e3b32b186a44cad1d434da860633, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackReceiver
-  knockbackTime: 1
+  knockbackTime: 1.5
+  knockbackDecay: 8
 --- !u!114 &2555318835341760512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -462,6 +417,52 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!61 &3843933582266070036
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5312161194555250998}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.1723373, y: 0.058419228}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.9288678, y: 1.9230261}
+  m_EdgeRadius: 0
 --- !u!1 &6829502761504398051
 GameObject:
   m_ObjectHideFlags: 0
